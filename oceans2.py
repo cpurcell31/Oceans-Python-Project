@@ -1,8 +1,7 @@
 import sys, os
 from os import path
 import argparse
-from matplotlib 
-import dates as md
+from matplotlib import dates as md
 import dateutil.parser
 
 from onc.onc import ONC
