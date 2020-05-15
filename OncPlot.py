@@ -40,6 +40,9 @@ if device_code:
     xfmt = md.DateFormatter('%Y-%m-%d %H:%M:%S.%f')
     for times in graph_data.sampleTimes:
         fig, ax = plt.subplots(figsize=(20,10))
+        plt.title(graph_data.locationName + " " + graph_data.sensorNames[counter] + " Over Time")
+        plt.ylabel(graph_data.sensorNames[counter])
+        plt.xlabel("Date")
         ax.xaxis.set_major_formatter(xfmt)
         image, = ax.plot(times, graph_data.readingValues[counter])
         graph_path = (graph_data.locationName + 
