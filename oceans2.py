@@ -6,7 +6,7 @@ import dateutil.parser
 
 from onc.onc import ONC
 cwd = os.getcwd()
-onc = ONC('API KEY HERE', outPath=cwd)
+onc = ONC('APIHERE', outPath=cwd)
 
 locationNames = list()
 locationCodes = list()
@@ -99,7 +99,7 @@ def getDeviceCodes(filters):
         print(device["deviceName"], "\n", "Device Code: ",
                 device["deviceCode"], "\n",
                 "Device ID: ", device["deviceId"], "\n")
-    return
+    return results
 
 def getLocationCodes(filters):
     try:
@@ -114,7 +114,7 @@ def getLocationCodes(filters):
         print("{0}. ".format(counter) + location["locationName"])
         print("Location Code: " + location["locationCode"] + "\n")
         counter += 1
-    return
+    return results
 
 def getLocationCodeByCategory(filters):
     try:
@@ -128,7 +128,7 @@ def getLocationCodeByCategory(filters):
         print("{0}. ".format(counter) + location["locationName"])
         print("Location Code: " + location["locationCode"] + "\n")
         counter += 1
-    return
+    return results
 
 def getDataProductCodes(filters):
     try:
@@ -142,7 +142,7 @@ def getDataProductCodes(filters):
         print("{0}. ".format(counter) + product["dataProductName"])
         print(product["dataProductCode"] + "\n")
         counter += 1
-    return
+    return results
 
 def downloadDataProduct(filters):
     try:
@@ -151,4 +151,4 @@ def downloadDataProduct(filters):
         print("")
         exit()
     onc.print(results)
-    return
+    return results
