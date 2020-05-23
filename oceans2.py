@@ -2,7 +2,7 @@ import os
 from matplotlib import dates as md
 import dateutil.parser
 from onc.onc import ONC
-import traceback
+import re
 
 cwd = os.getcwd()
 onc = ONC('APIHERE', outPath=cwd)
@@ -22,22 +22,36 @@ class GraphData:
         self.readingValues = list()
 
     def add_reading_values(self, values):
+        for value in values:
+            if type(value) is not float:
+                raise TypeError("Input is a not list of floats")
         self.readingValues.append(values)
         return
 
     def add_sample_times(self, times):
+        for time in times:
+            if type(time) is not float:
+                raise TypeError("Input not a list of matplotlib date objects")
         self.sampleTimes.append(times)
         return
 
     def add_raw_sample_times(self, times):
+        pattern = re.compile("[0-9]{4}[-][0-9]{2}[-][0-9]{2}[T][0-9]{2}[:][0-9]{2}[:][0-9]{2}[.][0-9]{3}[Z]")
+        for time in times:
+            if not pattern.match(time):
+                raise TypeError("Input is not a list of raw date strings")
         self.rawSampleTimes.append(times)
         return
 
     def add_unit_of_measure(self, unit):
+        if type(unit) is not str:
+            raise TypeError("Input is not a string")
         self.unitsOfMeasure.append(unit)
         return
 
     def add_sensor_name(self, name):
+        if type(name) is not str:
+            raise TypeError("Input is not a string")
         self.sensorNames.append(name)
         return
 
