@@ -1,10 +1,9 @@
-import sys, os
-from os import path
-import argparse
+import os
 from matplotlib import dates as md
 import dateutil.parser
-
 from onc.onc import ONC
+import traceback
+
 cwd = os.getcwd()
 onc = ONC('APIHERE', outPath=cwd)
 
@@ -22,106 +21,99 @@ class GraphData:
         self.rawSampleTimes = list()
         self.readingValues = list()
 
-    def addReadingValues(self, values):
+    def add_reading_values(self, values):
         self.readingValues.append(values)
         return
 
-    def addSampleTimes(self, times):
+    def add_sample_times(self, times):
         self.sampleTimes.append(times)
         return
-    
-    def addRawSampleTimes(self, times):
+
+    def add_raw_sample_times(self, times):
         self.rawSampleTimes.append(times)
         return
 
-    def addUnitOfMeasure(self, unit):
+    def add_unit_of_measure(self, unit):
         self.unitsOfMeasure.append(unit)
         return
 
-    def addSensorName(self, name):
+    def add_sensor_name(self, name):
         self.sensorNames.append(name)
         return
 
-def getDeviceData(filters):
+
+def get_device_data(filters):
     try:
         results = onc.getDirectByDevice(filters)
     except:
-        print("Invalid device code. Please confirm device code")
         exit()
     try:
         location = onc.getLocations(filters)
     except:
         print("Could not find location.")
         location = {"locationName": ""}
+    if len(results) == 0:
+        print("Could not find location code with filters: " + filters)
+        exit()
     graph_data = GraphData(location[0]["locationName"])
     counter = 0
     for parameter in results["sensorData"]:
-        readingValues = list()
-        sampleTimes = list()
+        reading_values = list()
+        sample_times = list()
         dates = list()
         for value in parameter["data"]["values"]:
-            readingValues.append(value)
+            reading_values.append(value)
         for time in parameter["data"]["sampleTimes"]:
-            sampleTimes.append(time)
-        if len(readingValues) != 0 and len(sampleTimes) != 0:
-            graph_data.addReadingValues(readingValues)
-            graph_data.addRawSampleTimes(sampleTimes)
-            graph_data.addUnitOfMeasure(parameter["unitOfMeasure"])
-            graph_data.addSensorName(parameter["sensorName"])
-            for time in sampleTimes:
+            sample_times.append(time)
+        if len(reading_values) != 0 and len(sample_times) != 0:
+            graph_data.add_reading_values(reading_values)
+            graph_data.add_raw_sample_times(sample_times)
+            graph_data.add_unit_of_measure(parameter["unitOfMeasure"])
+            graph_data.add_sensor_name(parameter["sensorName"])
+            for time in sample_times:
                 dates.append(dateutil.parser.parse(time))
             datenums = md.date2num(dates)
-            graph_data.addSampleTimes(datenums)
+            graph_data.add_sample_times(datenums)
     return graph_data
 
-def exportData(name, parameter, dates, values):
+
+def export_data(name, parameter, dates, values):
     try:
         f = open(os.getcwd() + "/" + name + "-" + parameter + ".txt", "w+")
-    except:
+    except FileNotFoundError or FileExistsError:
         print("Unable to create file please confirm file path")
         return
     f.write(name + "\n")
     f.write("Sample Time: " + parameter + "\n")
     counter = 0
     for date in dates:
-        f.write(date +" |  %f\n" %values[counter])
+        f.write(date + " |  %f\n" % values[counter])
     f.close()
     return
 
-def getDeviceCodes(filters):
+
+def get_device_codes(filters):
     try:
         results = onc.getDevices(filters)
     except:
-        print("Could not find location with given location code. " +
-                "Please confirm location code")
+        exit()
+    if len(results) == 0:
+        print("Could not find location code with filters: " + filters)
         exit()
     for device in results:
         print(device["deviceName"], "\n", "Device Code: ",
-                device["deviceCode"], "\n",
-                "Device ID: ", device["deviceId"], "\n")
+              device["deviceCode"], "\n",
+              "Device ID: ", device["deviceId"], "\n")
     return results
 
-def getLocationCodes(filters):
+
+def get_location_codes(filters):
     try:
         results = onc.getLocations(filters)
     except:
-        print("Could not find any locations with the name: ", location_name)
         exit()
     if len(results) == 0:
-        print("Could not find any locations with the name: ", location_name)
-    counter = 1
-    for location in results:
-        print("{0}. ".format(counter) + location["locationName"])
-        print("Location Code: " + location["locationCode"] + "\n")
-        counter += 1
-    return results
-
-def getLocationCodeByCategory(filters):
-    try:
-        results = onc.getLocations(filters)
-    except:
-        print("No devices with given category code found. Please confirm" +
-                " device category code")
+        print("Could not find location code with filters: " + filters)
         exit()
     counter = 1
     for location in results:
@@ -130,12 +122,30 @@ def getLocationCodeByCategory(filters):
         counter += 1
     return results
 
-def getDataProductCodes(filters):
+
+def get_location_code_by_category(filters):
+    try:
+        results = onc.getLocations(filters)
+    except:
+        exit()
+    if len(results) == 0:
+        print("Could not find location code with filters: " + filters)
+        exit()
+    counter = 1
+    for location in results:
+        print("{0}. ".format(counter) + location["locationName"])
+        print("Location Code: " + location["locationCode"] + "\n")
+        counter += 1
+    return results
+
+
+def get_data_product_codes(filters):
     try:
         results = onc.getDataProducts(filters)
     except:
-        print("No data products could be found with the given filters" +
-                " please confirm codes entered")
+        exit()
+    if len(results) == 0:
+        print("Could not find location code with filters: " + filters)
         exit()
     counter = 1
     for product in results:
@@ -144,11 +154,14 @@ def getDataProductCodes(filters):
         counter += 1
     return results
 
-def downloadDataProduct(filters):
+
+def download_data_product(filters):
     try:
         results = onc.orderDataProduct(filters)
     except:
-        print("")
+        exit()
+    if len(results) == 0:
+        print("Could not find location code with filters: " + filters)
         exit()
     onc.print(results)
     return results
