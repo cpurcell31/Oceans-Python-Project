@@ -1,11 +1,10 @@
-import os, sys
+import os
 from os import path
 import oceans2 as o2
 import argparse
-from oceans2 import onc
-from oceans2 import GraphData
 from matplotlib import pyplot as plt
 from matplotlib import dates as md
+import pandas as pd
 
 
 def main(arguments):
@@ -13,6 +12,8 @@ def main(arguments):
     start_date = arguments.startDate
     end_date = arguments.endDate
     export = arguments.export
+    filename = arguments.filename
+    dir_path = arguments.path
     if device_code:
         filters = {'deviceCode': device_code,
                    'dateFrom': start_date,
@@ -33,11 +34,33 @@ def main(arguments):
             fig.savefig(path.join(cwd, graph_path))
             if export:
                 o2.export_data(graph_data.locationName,
-                              graph_data.sensorNames[counter],
-                              graph_data.rawSampleTimes[counter],
-                              graph_data.readingValues[counter])
+                               graph_data.sensorNames[counter],
+                               graph_data.rawSampleTimes[counter],
+                               graph_data.readingValues[counter])
             counter += 1
             plt.close(fig)
+
+    elif filename:
+        header_rows = list(range(0, 50))
+        header_rows.append(51)
+        df = pd.read_csv(filename, skiprows=header_rows, usecols=[0, 1, 3])
+
+        column_names = list(df.columns.values.tolist())
+        df[column_names[0]] = pd.to_datetime(df[column_names[0]])
+        df[column_names[1]] = pd.to_numeric(df[column_names[1]], errors='coerce')
+        df[column_names[1]] = df[column_names[1]].fillna(0)
+        datenums = md.date2num(df[column_names[0]].to_list())
+
+        xfmt = md.DateFormatter('%Y-%m-%d %H:%M:%S.%f')
+        fig, ax = plt.subplots(figsize=(20, 10))
+        plt.xlabel("Date")
+        ax.xaxis.set_major_formatter(xfmt)
+        image, = ax.plot(datenums, df[column_names[1]])
+        plt.show()
+
+    elif dir_path:
+        print("")
+
     exit()
 
 
@@ -57,6 +80,10 @@ if __name__ == "__main__":
                              'YYYY:MM:DDThh:dd:ss.000Z')
     parser.add_argument('-x', '--export', action='store_true',
                         help='Toggle option to export raw device data to a .txt file')
+    parser.add_argument('-f', '--filename', type=str,
+                        help='')
+    parser.add_argument('-p', '--path', type=str,
+                        help='')
 
     args = parser.parse_args()
     main(args)

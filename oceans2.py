@@ -91,9 +91,9 @@ def get_device_data(filters):
     return graph_data
 
 
-def export_data(name, parameter, dates, values):
+def export_data(name, parameter, dates, values, extension):
     try:
-        f = open(os.getcwd() + "/" + name + "-" + parameter + ".txt", "w+")
+        f = open(os.getcwd() + "/" + name + "-" + parameter + "." + extension, "w+")
     except FileNotFoundError or FileExistsError:
         print("Unable to create file please confirm file path")
         return
@@ -155,7 +155,7 @@ def get_location_code_by_category(filters):
 
 def get_data_product_codes(filters):
     try:
-        results = onc.getDataProducts(filters)
+        results = onc.getDataProducts(filters, downloadResultsOnly=True)
     except:
         exit()
     if len(results) == 0:
@@ -177,5 +177,4 @@ def download_data_product(filters):
     if len(results) == 0:
         print("Could not find location code with filters: " + filters)
         exit()
-    onc.print(results)
     return results

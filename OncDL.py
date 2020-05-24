@@ -8,6 +8,7 @@ def main(arguments):
     extension = arguments.extension
     start_date = arguments.start
     end_date = arguments.end
+    filename = arguments.filename
     if product_code and extension and start_date and end_date and device_code:
         filters = {'deviceCode': device_code,
                    'dataProductCode': product_code,
@@ -17,7 +18,7 @@ def main(arguments):
                    'dpo_qualityControl': 1,
                    'dpo_resample': 'none',
                    'dpo_dataGaps': 0}
-        o2.download_data_product(filters)
+        results = o2.download_data_product(filters)
     exit()
 
 
@@ -42,6 +43,8 @@ if __name__ == "__main__":
     parser.add_argument('-s', '--start', type=str,
                         help='Start date of instrument data specified in ISO-8601 format: ' +
                              'YYYY:MM:DDThh:dd:ss.000Z')
+    parser.add_argument('-f', '--filename', type=str,
+                        help='')
 
     args = parser.parse_args()
     main(args)
