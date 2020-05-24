@@ -5,6 +5,7 @@ import argparse
 from matplotlib import pyplot as plt
 from matplotlib import dates as md
 import pandas as pd
+import glob
 
 
 def main(arguments):
@@ -49,17 +50,64 @@ def main(arguments):
         df[column_names[0]] = pd.to_datetime(df[column_names[0]])
         df[column_names[1]] = pd.to_numeric(df[column_names[1]], errors='coerce')
         df[column_names[1]] = df[column_names[1]].fillna(0)
+        df[column_names[2]] = pd.to_numeric(df[column_names[2]], errors='coerce')
+        df[column_names[2]] = df[column_names[2]].fillna(0)
         datenums = md.date2num(df[column_names[0]].to_list())
 
         xfmt = md.DateFormatter('%Y-%m-%d %H:%M:%S.%f')
         fig, ax = plt.subplots(figsize=(20, 10))
         plt.xlabel("Date")
         ax.xaxis.set_major_formatter(xfmt)
-        image, = ax.plot(datenums, df[column_names[1]])
+
+        ax.set_ylabel(column_names[1], color="tab:blue")
+        ax.plot(datenums, df[column_names[1]], color="tab:blue")
+
+        ax2 = ax.twinx()
+        ax2.set_ylabel(column_names[2], color="tab:red")
+        ax2.plot(datenums, df[column_names[2]], color="tab:red")
+
         plt.show()
 
     elif dir_path:
-        print("")
+        header_rows = list(range(0, 50))
+        header_rows.append(51)
+
+        file_path = glob.glob(dir_path + "*.csv")
+        frame_list = list()
+        df = pd.read_csv(file_path[0], skiprows=header_rows, usecols=[0, 1, 3])
+        frame_list.append(df)
+        header_rows = list(range(0, 52))
+
+        for file in file_path[1:]:
+            df = pd.read_csv(file, skiprows=header_rows, usecols=[0, 1, 3])
+            frame_list.append(df)
+
+        fatal_frame = pd.concat(frame_list, axis=0, ignore_index=True)
+        column_names = list(fatal_frame.columns.values.tolist())
+        print(column_names)
+
+        fatal_frame[column_names[0]] = pd.to_datetime(fatal_frame[column_names[0]])
+        datenums = md.date2num(fatal_frame[column_names[0]].to_list())
+
+        fatal_frame[column_names[1]] = pd.to_numeric(fatal_frame[column_names[1]], errors='coerce')
+        fatal_frame[column_names[1]] = fatal_frame[column_names[1]].fillna(0)
+
+        fatal_frame[column_names[2]] = pd.to_numeric(fatal_frame[column_names[2]], errors='coerce')
+        fatal_frame[column_names[2]] = fatal_frame[column_names[2]].fillna(0)
+
+        xfmt = md.DateFormatter('%Y-%m-%d %H:%M:%S.%f')
+        fig, ax = plt.subplots(figsize=(20, 10))
+        plt.xlabel("Date")
+        ax.xaxis.set_major_formatter(xfmt)
+
+        ax.set_ylabel(column_names[1], color="tab:blue")
+        ax.plot(datenums, fatal_frame[column_names[1]], color="tab:blue")
+
+        ax2 = ax.twinx()
+        ax2.set_ylabel(column_names[2], color="tab:red")
+        ax2.plot(datenums, fatal_frame[column_names[2]], color="tab:red")
+
+        plt.show()
 
     exit()
 
