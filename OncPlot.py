@@ -23,16 +23,19 @@ def main(arguments):
         counter = 0
         cwd = os.getcwd()
         xfmt = md.DateFormatter('%Y-%m-%d %H:%M:%S.%f')
+
         for times in graph_data.sampleTimes:
             fig, ax = plt.subplots(figsize=(20, 10))
             plt.title(graph_data.locationName + " " + graph_data.sensorNames[counter] + " Over Time")
             plt.ylabel(graph_data.sensorNames[counter])
             plt.xlabel("Date")
+
             ax.xaxis.set_major_formatter(xfmt)
             image, = ax.plot(times, graph_data.readingValues[counter])
             graph_path = (graph_data.locationName +
                           "_graph{0}.png".format(counter))
             fig.savefig(path.join(cwd, graph_path))
+
             if export:
                 o2.export_data(graph_data.locationName,
                                graph_data.sensorNames[counter],
