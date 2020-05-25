@@ -155,7 +155,7 @@ def get_location_code_by_category(filters):
 
 def get_data_product_codes(filters):
     try:
-        results = onc.getDataProducts(filters, downloadResultsOnly=True)
+        results = onc.getDataProducts(filters)
     except:
         exit()
     if len(results) == 0:
@@ -167,6 +167,28 @@ def get_data_product_codes(filters):
         print(product["dataProductCode"] + "\n")
         counter += 1
     return results
+
+
+def get_date_information(filters):
+    try:
+        results = onc.getDeployments(filters)
+    except:
+        exit()
+    if len(results) == 0:
+        print("Could not find date information with given filters: " + filters)
+        exit()
+    for deployment in results:
+        print(deployment["locationCode"])
+        print("Deployment Start Date: " + deployment["begin"])
+        if deployment["end"] is None:
+            print("Deployment End Date: " + "None")
+        else:
+            print("Deployment End Date: " + deployment["end"])
+        if deployment["hasDeviceData"]:
+            print("Deployment Has Device Data: True")
+        else:
+            print("Deployment Has Device Data: False")
+        print()
 
 
 def download_data_product(filters):
