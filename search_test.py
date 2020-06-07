@@ -1,4 +1,3 @@
-import pytest
 import oceans2 as o2
 
 

@@ -1,3 +1,4 @@
+from apicheck import get_key
 import os
 from matplotlib import dates as md
 import dateutil.parser
@@ -5,7 +6,8 @@ from onc.onc import ONC
 import re
 
 cwd = os.getcwd()
-onc = ONC('APIHERE', outPath=cwd)
+apikey = get_key(None)
+onc = ONC(apikey, outPath=cwd)
 
 locationNames = list()
 locationCodes = list()
