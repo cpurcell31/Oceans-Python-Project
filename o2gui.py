@@ -15,6 +15,7 @@ class OceanGui:
     def __pack_download_widgets__(self):
         self.frame_download.label_download.grid(row=0, column=0, padx=5)
         self.frame_download.frame.grid(row=1, column=0, padx=5, sticky='w')
+        return
 
     def __pack_search_widgets__(self):
         self.frame_search.label_search.grid(row=0, column=0, sticky='w')
@@ -37,6 +38,7 @@ class OceanGui:
         self.frame_search.search_button.grid(row=5, column=1)
 
         self.frame_search.frame.grid(row=0, column=0, padx=5, sticky='w')
+        return
 
 
 class SearchFrame:
@@ -78,32 +80,52 @@ class SearchFrame:
         filters_dev = {'locationCode': self.loc_code,
                        'deviceCategoryCode': self.dev_cat,
                        'deviceCode': self.dev_code}
-        results = list()
+        results_raw = list()
+        results_trim = list()
 
         if self.loc_name:
             result, locations = o2.get_location_codes(filters_loc)
-            results.append(result)
-            print(locations)
+            results_raw.append(result)
+            results_trim.append(locations)
 
         if self.loc_code:
             result, devices = o2.get_device_codes(filters_dev)
-            results.append(result)
-            print(devices)
+            results_raw.append(result)
+            results_trim.append(devices)
 
         if self.dev_cat:
             result, locations = o2.get_location_code_by_category(filters_loc)
-            results.append(result)
-            print(locations)
+            results_raw.append(result)
+            results_trim.append(locations)
 
         if self.product_on.get() and (self.dev_code or self.dev_cat or self.loc_code):
             result, products = o2.get_data_product_codes(filters_dev)
-            results.append(result)
-            print(products)
+            results_raw.append(result)
+            results_trim.append(products)
 
         if self.date_on.get() and self.dev_code:
             result, deployments = o2.get_date_information(filters_dev)
-            results.append(result)
-            print(deployments)
+            results_raw.append(result)
+            results_trim.append(deployments)
+
+        self.create_results_window(results_raw, results_trim)
+        return
+
+    # noinspection PyMethodMayBeStatic
+    def create_results_window(self, results_raw, results_trim):
+        window_results = tk.Toplevel()
+        window_results.title("Search Results")
+
+        results_text_box = tk.Text(master=window_results)
+        button_export = tk.Button(master=window_results, text="Export Results")
+
+        for result in results_trim:
+            results_text_box.insert(tk.END, result)
+
+        results_text_box.pack()
+        button_export.pack()
+
+        return
 
 
 class DownloadFrame:
