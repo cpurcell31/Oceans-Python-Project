@@ -18,11 +18,13 @@ def main(arguments):
 
     elif location_name:
         filters = {'locationName': location_name}
-        o2.get_location_codes(filters)
+        results, locations = o2.get_location_codes(filters)
+        print(locations)
 
     elif location_code:
         filters = {'locationCode': location_code}
-        o2.get_device_codes(filters)
+        results, devices = o2.get_device_codes(filters)
+        print(devices)
 
     elif device_category_code:
         filters = {'deviceCategoryCode': device_category_code}

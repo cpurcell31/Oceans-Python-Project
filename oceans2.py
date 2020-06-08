@@ -116,11 +116,10 @@ def get_device_codes(filters):
     if len(results) == 0:
         print("Could not find location code with filters: " + filters)
         exit()
+    devices = dict()
     for device in results:
-        print(device["deviceName"], "\n", "Device Code: ",
-              device["deviceCode"], "\n",
-              "Device ID: ", device["deviceId"], "\n")
-    return results
+        devices[device["deviceName"]] = device["deviceCode"]
+    return results, devices
 
 
 def get_location_codes(filters):
@@ -131,12 +130,10 @@ def get_location_codes(filters):
     if len(results) == 0:
         print("Could not find location code with filters: " + filters)
         exit()
-    counter = 1
+    locations = dict()
     for location in results:
-        print("{0}. ".format(counter) + location["locationName"])
-        print("Location Code: " + location["locationCode"] + "\n")
-        counter += 1
-    return results
+        locations[location["locationName"]] = location["locationCode"]
+    return results, locations
 
 
 def get_location_code_by_category(filters):
@@ -147,14 +144,13 @@ def get_location_code_by_category(filters):
     if len(results) == 0:
         print("Could not find location code with filters: " + filters)
         exit()
-    counter = 1
+    locations = dict()
     for location in results:
-        print("{0}. ".format(counter) + location["locationName"])
-        print("Location Code: " + location["locationCode"] + "\n")
-        counter += 1
-    return results
+        locations[location["locationName"]] = location['locationCode']
+    return results, locations
 
 
+# Needs to consider location code input and provide all devices
 def get_data_product_codes(filters):
     try:
         results = onc.getDataProducts(filters)
@@ -163,12 +159,10 @@ def get_data_product_codes(filters):
     if len(results) == 0:
         print("Could not find location code with filters: " + filters)
         exit()
-    counter = 1
+    products = dict()
     for product in results:
-        print("{0}. ".format(counter) + product["dataProductName"])
-        print(product["dataProductCode"] + "\n")
-        counter += 1
-    return results
+        products[product["dataProductName"]] = product["dataProductCode"]
+    return results, products
 
 
 def get_date_information(filters):
@@ -179,18 +173,10 @@ def get_date_information(filters):
     if len(results) == 0:
         print("Could not find date information with given filters: " + filters)
         exit()
+    deployments = list()
     for deployment in results:
-        print(deployment["locationCode"])
-        print("Deployment Start Date: " + deployment["begin"])
-        if deployment["end"] is None:
-            print("Deployment End Date: " + "None")
-        else:
-            print("Deployment End Date: " + deployment["end"])
-        if deployment["hasDeviceData"]:
-            print("Deployment Has Device Data: True")
-        else:
-            print("Deployment Has Device Data: False")
-        print()
+        deployments.append(deployment)
+    return results, deployments
 
 
 def download_data_product(filters):

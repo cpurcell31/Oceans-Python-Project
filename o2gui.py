@@ -46,8 +46,8 @@ class SearchFrame:
         self.loc_code = ""
         self.dev_cat = ""
         self.dev_code = ""
-        self.product_on = 0
-        self.date_on = 0
+        self.product_on = tk.IntVar()
+        self.date_on = tk.IntVar()
 
         self.frame = tk.Frame()
 
@@ -71,6 +71,39 @@ class SearchFrame:
         self.loc_code = self.loc_code_entry.get()
         self.dev_cat = self.dev_cat_entry.get()
         self.dev_code = self.dev_code_entry.get()
+        filters_loc = {'locationName': self.loc_name,
+                       'locationCode': self.loc_code,
+                       'deviceCategoryCode': self.dev_cat,
+                       'deviceCode': self.dev_code}
+        filters_dev = {'locationCode': self.loc_code,
+                       'deviceCategoryCode': self.dev_cat,
+                       'deviceCode': self.dev_code}
+        results = list()
+
+        if self.loc_name:
+            result, locations = o2.get_location_codes(filters_loc)
+            results.append(result)
+            print(locations)
+
+        if self.loc_code:
+            result, devices = o2.get_device_codes(filters_dev)
+            results.append(result)
+            print(devices)
+
+        if self.dev_cat:
+            result, locations = o2.get_location_code_by_category(filters_loc)
+            results.append(result)
+            print(locations)
+
+        if self.product_on.get() and (self.dev_code or self.dev_cat or self.loc_code):
+            result, products = o2.get_data_product_codes(filters_dev)
+            results.append(result)
+            print(products)
+
+        if self.date_on.get() and self.dev_code:
+            result, deployments = o2.get_date_information(filters_dev)
+            results.append(result)
+            print(deployments)
 
 
 class DownloadFrame:
