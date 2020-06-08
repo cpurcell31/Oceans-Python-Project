@@ -71,6 +71,7 @@ class SearchFrame:
     def handle_search(self):
         self.loc_name = self.loc_name_entry.get()
         self.loc_code = self.loc_code_entry.get()
+        # check location code is a valid code
         self.dev_cat = self.dev_cat_entry.get()
         self.dev_code = self.dev_code_entry.get()
         filters_loc = {'locationName': self.loc_name,
@@ -82,45 +83,62 @@ class SearchFrame:
                        'deviceCode': self.dev_code}
         results_raw = list()
         results_trim = list()
+        sections_list = list()
 
         if self.loc_name:
             result, locations = o2.get_location_codes(filters_loc)
-            results_raw.append(result)
-            results_trim.append(locations)
+            if result is not None:
+                results_raw.append(result)
+                results_trim.append(locations)
+                sections_list.append("Locations")
 
         if self.loc_code:
             result, devices = o2.get_device_codes(filters_dev)
-            results_raw.append(result)
-            results_trim.append(devices)
+            if result is not None:
+                results_raw.append(result)
+                results_trim.append(devices)
+                sections_list.append("Devices")
 
         if self.dev_cat:
             result, locations = o2.get_location_code_by_category(filters_loc)
-            results_raw.append(result)
-            results_trim.append(locations)
+            if result is not None:
+                results_raw.append(result)
+                results_trim.append(locations)
+                sections_list.append("Locations with " + self.dev_cat)
 
         if self.product_on.get() and (self.dev_code or self.dev_cat or self.loc_code):
             result, products = o2.get_data_product_codes(filters_dev)
-            results_raw.append(result)
-            results_trim.append(products)
+            if result is not None:
+                results_raw.append(result)
+                results_trim.append(products)
+                sections_list.append("Products")
 
         if self.date_on.get() and self.dev_code:
             result, deployments = o2.get_date_information(filters_dev)
             results_raw.append(result)
             results_trim.append(deployments)
 
-        self.create_results_window(results_raw, results_trim)
+        self.create_results_window(results_raw, results_trim, sections_list)
         return
 
     # noinspection PyMethodMayBeStatic
-    def create_results_window(self, results_raw, results_trim):
+    def create_results_window(self, results_raw, results_trim, sections_list):
         window_results = tk.Toplevel()
         window_results.title("Search Results")
 
         results_text_box = tk.Text(master=window_results)
         button_export = tk.Button(master=window_results, text="Export Results")
 
-        for result in results_trim:
-            results_text_box.insert(tk.END, result)
+        counter = 0
+        if len(results_trim) == 0:
+            results_text_box.insert(tk.END, "No Results Found with Given Filters")
+        else:
+            for result in results_trim:
+                results_text_box.insert(tk.END, sections_list[counter] + "\n")
+                for key in result.keys():
+                    results_text_box.insert(tk.END, key + "\n")
+                    results_text_box.insert(tk.END, result[key] + "\n\n")
+                counter += 1
 
         results_text_box.pack()
         button_export.pack()

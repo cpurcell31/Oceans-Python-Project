@@ -114,8 +114,8 @@ def get_device_codes(filters):
     except:
         exit()
     if len(results) == 0:
-        print("Could not find location code with filters: " + filters)
-        exit()
+        print("Could not find location code with given filters")
+        return None, None
     devices = dict()
     for device in results:
         devices[device["deviceName"]] = device["deviceCode"]
@@ -128,8 +128,8 @@ def get_location_codes(filters):
     except:
         exit()
     if len(results) == 0:
-        print("Could not find location code with filters: " + filters)
-        exit()
+        print("Could not find location code with given filters")
+        return None, None
     locations = dict()
     for location in results:
         locations[location["locationName"]] = location["locationCode"]
@@ -142,7 +142,7 @@ def get_location_code_by_category(filters):
     except:
         exit()
     if len(results) == 0:
-        print("Could not find location code with filters: " + filters)
+        print("Could not find location code with given filters")
         exit()
     locations = dict()
     for location in results:
@@ -157,8 +157,8 @@ def get_data_product_codes(filters):
     except:
         exit()
     if len(results) == 0:
-        print("Could not find location code with filters: " + filters)
-        exit()
+        print("Could not find location code with given filters")
+        return None, None
     products = dict()
     for product in results:
         products[product["dataProductName"]] = product["dataProductCode"]
@@ -171,8 +171,8 @@ def get_date_information(filters):
     except:
         exit()
     if len(results) == 0:
-        print("Could not find date information with given filters: " + filters)
-        exit()
+        print("Could not find date information with given filters")
+        return None, None
     deployments = list()
     for deployment in results:
         deployments.append(deployment)
@@ -185,6 +185,6 @@ def download_data_product(filters):
     except:
         exit()
     if len(results) == 0:
-        print("Could not find location code with filters: " + filters)
-        exit()
+        print("Could not find location code with given filters")
+        return None, None
     return results
