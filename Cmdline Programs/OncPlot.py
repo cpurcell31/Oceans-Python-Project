@@ -1,6 +1,6 @@
 import os
 from os import path
-import oceans2 as o2
+from Utils import oceans2 as o2
 import argparse
 from matplotlib import pyplot as plt
 from matplotlib import dates as md

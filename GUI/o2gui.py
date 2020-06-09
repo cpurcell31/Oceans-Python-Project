@@ -1,6 +1,5 @@
 import tkinter as tk
-import oceans2 as o2
-import database_util as dbu
+from Utils import database_util as dbu, oceans2 as o2
 from tkinter import filedialog
 
 

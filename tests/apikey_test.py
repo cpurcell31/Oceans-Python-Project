@@ -1,4 +1,4 @@
-import apicheck
+from Utils import apicheck
 
 
 def test_get_key():

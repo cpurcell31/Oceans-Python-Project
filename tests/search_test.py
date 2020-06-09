@@ -1,4 +1,4 @@
-import oceans2 as o2
+from Utils import oceans2 as o2
 
 
 def test_search_location():

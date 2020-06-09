@@ -1,7 +1,7 @@
 import pytest
 from matplotlib import dates as md
 import dateutil.parser
-import oceans2 as o2
+from Utils import oceans2 as o2
 
 graph_data = o2.GraphData("Burrard")
 

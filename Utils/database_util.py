@@ -1,7 +1,7 @@
 import os
 import re
 import string
-import oceans2 as o2
+from Utils import oceans2 as o2
 import sqlite3
 from sqlite3 import Error
 

@@ -1,5 +1,5 @@
 import argparse
-import oceans2 as o2
+from Utils import oceans2 as o2
 
 
 def main(arguments):
