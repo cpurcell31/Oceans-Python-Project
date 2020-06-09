@@ -1,4 +1,5 @@
 import os
+import re
 import string
 import oceans2 as o2
 import sqlite3
@@ -60,6 +61,17 @@ def populate_table(connection):
     cursor.executemany('INSERT INTO locations VALUES(?,?);', locations)
     connection.commit()
     return
+
+
+def search_locations(location_code, path):
+    connection = connect_database(path)
+    cursor = connection.cursor()
+    modified_location_code = re.sub('[^A-Za-z0-9]+', '', location_code)
+    cursor.execute("SELECT * FROM locations WHERE id=?", (modified_location_code,))
+    results = cursor.fetchall()
+    if len(results) == 0:
+        return False
+    return True
 
 
 def main():
