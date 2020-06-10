@@ -14,7 +14,8 @@ def main(arguments):
         filters = {'locationCode': location_code,
                    'deviceCategoryCode': device_category_code,
                    'deviceCode': device_code}
-        o2.get_data_product_codes(filters)
+        results, products = o2.get_data_product_codes(filters)
+        print(products)
 
     elif location_name:
         filters = {'locationName': location_name}
@@ -28,11 +29,13 @@ def main(arguments):
 
     elif device_category_code:
         filters = {'deviceCategoryCode': device_category_code}
-        o2.get_location_code_by_category(filters)
+        results, categories = o2.get_location_code_by_category(filters)
+        print(categories)
 
     if date and device_code:
         filters = {'deviceCode': device_code}
-        o2.get_date_information(filters)
+        results, deployments = o2.get_date_information(filters)
+        print(deployments)
 
     exit()
 

@@ -143,11 +143,25 @@ def get_location_code_by_category(filters):
         exit()
     if len(results) == 0:
         print("Could not find location code with given filters")
-        exit()
+        return None, None
     locations = dict()
     for location in results:
         locations[location["locationName"]] = location['locationCode']
     return results, locations
+
+
+def get_device_categories(filters):
+    try:
+        results = onc.getDeviceCategories(filters)
+    except:
+        exit()
+    if len(results) == 0:
+        print("Could not find categories with given filters")
+        return None, None
+    categories = dict()
+    for category in results:
+        categories[category["deviceCategoryName"]] = (category["deviceCategoryCode"], category["description"])
+    return results, categories
 
 
 # Needs to consider location code input and provide all devices
@@ -161,7 +175,7 @@ def get_data_product_codes(filters):
         return None, None
     products = dict()
     for product in results:
-        products[product["dataProductName"]] = product["dataProductCode"]
+        products[product["dataProductName"]] = (product["dataProductCode"], product["extension"])
     return results, products
 
 

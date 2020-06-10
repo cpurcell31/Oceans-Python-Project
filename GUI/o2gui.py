@@ -184,8 +184,14 @@ class SearchFrame:
 class DownloadFrame:
 
     def __init__(self, window):
+        path = o2.cwd + "/OncUtil.db"
+
         self.frame = tk.Frame()
         self.label_download = tk.Label(master=self.frame, text='ONC Download')
+
+        extensions = dbu.get_products(path)
+        drop_options = tk.StringVar()
+        drop_options.set(extensions[0])
 
         self.dev_code_lbl = tk.Label(master=self.frame, text="Device Code")
         self.prd_code_lbl = tk.Label(master=self.frame, text="Product Code")
@@ -197,7 +203,7 @@ class DownloadFrame:
         self.prd_code_entry = tk.Entry(master=self.frame)
         self.start_date_entry = tk.Entry(master=self.frame)
         self.end_date_entry = tk.Entry(master=self.frame)
-        self.extension_entry = tk.Entry(master=self.frame)
+        self.extension_entry = tk.OptionMenu(self.frame, drop_options, *extensions)
 
         self.download_button = tk.Button(master=self.frame, text="Search and Download", command=self.handle_download)
 
