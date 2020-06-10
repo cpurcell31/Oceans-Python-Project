@@ -117,6 +117,30 @@ def search_locations(location_code, path):
     return True
 
 
+def search_devices(device_code, path):
+    connection = connect_database(path)
+    cursor = connection.cursor()
+    cursor.execute("SELECT * FROM devices WHERE id=?", (device_code,))
+    results = cursor.fetchall()
+    connection.commit()
+    connection.close()
+    if len(results) == 0:
+        return False
+    return True
+
+
+def search_products(product_code, path):
+    connection = connect_database(path)
+    cursor = connection.cursor()
+    cursor.execute("SELECT * FROM products where id=?", (product_code,))
+    results = cursor.fetchall()
+    connection.commit()
+    connection.close()
+    if len(results) == 0:
+        return False
+    return True
+
+
 def get_products(path):
     connection = connect_database(path)
     cursor = connection.cursor()

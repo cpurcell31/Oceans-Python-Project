@@ -187,9 +187,12 @@ def get_date_information(filters):
     if len(results) == 0:
         print("Could not find date information with given filters")
         return None, None
-    deployments = list()
+    deployments = dict()
     for deployment in results:
-        deployments.append(deployment)
+        if deployment["end"] is None:
+            deployments[deployment["begin"]] = "Present"
+        else:
+            deployments[deployment["begin"]] = deployment["end"]
     return results, deployments
 
 
@@ -200,5 +203,5 @@ def download_data_product(filters):
         exit()
     if len(results) == 0:
         print("Could not find location code with given filters")
-        return None, None
+        return None
     return results

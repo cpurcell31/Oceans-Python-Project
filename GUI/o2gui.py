@@ -2,6 +2,10 @@ import tkinter as tk
 from Utils import database_util as dbu, oceans2 as o2
 from tkinter import filedialog
 
+import time
+
+path = o2.cwd + "/OncUtil.db"
+
 
 class OceanGui:
 
@@ -66,7 +70,7 @@ class SearchFrame:
     def __init__(self, window):
         self.product_on = tk.IntVar()
         self.date_on = tk.IntVar()
-        help_icon = tk.PhotoImage(file=o2.cwd+"/help_icon.gif")
+        help_icon = tk.PhotoImage(file=o2.cwd + "/help_icon.gif")
 
         self.frame = tk.Frame()
 
@@ -141,6 +145,7 @@ class SearchFrame:
             result, deployments = o2.get_date_information(filters_dev)
             results_raw.append(result)
             results_trim.append(deployments)
+            sections_list.append("Deployment Dates")
 
         self.create_results_window(results_trim, sections_list, inval_flag)
         return
@@ -158,9 +163,9 @@ class SearchFrame:
             results_text_box.insert(tk.END, "No Results Found With Given Filters")
         else:
             for result in results_trim:
-                results_text_box.insert(tk.END, sections_list[counter] + "\n")
+                results_text_box.insert(tk.END, sections_list[counter] + "\n\n")
                 for key in result.keys():
-                    results_text_box.insert(tk.END, key + "\n")
+                    results_text_box.insert(tk.END, key + " - ")
                     results_text_box.insert(tk.END, result[key] + "\n\n")
                 counter += 1
 
@@ -177,21 +182,40 @@ class SearchFrame:
         search_help_lbl = tk.Label(master=window_help, text="ONC Search Instructions")
         download_help_lbl = tk.Label(master=window_help, text="ONC Download Instructions")
 
+        search_help_text = tk.Label(master=window_help, text=(
+            "The ONC Search Module processes searches for ONC instrument locations, devices, data products, "
+            "and deployment dates.\n\n"))
+        search_help_text1 = tk.Label(master=window_help, text=("Search Instructions:\n\n1. Input as much data as you "
+                                                               "know, if you are a new user try searching for "
+                                                               "locations by inputting 'Underwater' in the location "
+                                                               "entry box.\n"))
+        search_help_text2 = tk.Label(master=window_help, text=("2. Check any boxes that you want to apply. If you "
+                                                               "want to search for deployment dates make sure to "
+                                                               "input a device code as well.\nIf you want to search "
+                                                               "for data products make sure to input a device code or "
+                                                               "location code or device category\n"))
+        search_help_text3 = tk.Label(master=window_help, text=("3. Hit the Search button and wait for results."
+                                                               "A window containing any potential results will popup "
+                                                               "and give the option to export the results\n\n"))
+
         search_help_lbl.pack()
+        search_help_text.pack()
+        search_help_text1.pack()
+        search_help_text2.pack()
+        search_help_text3.pack()
         download_help_lbl.pack()
 
 
 class DownloadFrame:
 
     def __init__(self, window):
-        path = o2.cwd + "/OncUtil.db"
 
         self.frame = tk.Frame()
         self.label_download = tk.Label(master=self.frame, text='ONC Download')
 
         extensions = dbu.get_products(path)
-        drop_options = tk.StringVar()
-        drop_options.set(extensions[0])
+        self.drop_options = tk.StringVar()
+        self.drop_options.set(extensions[0])
 
         self.dev_code_lbl = tk.Label(master=self.frame, text="Device Code")
         self.prd_code_lbl = tk.Label(master=self.frame, text="Product Code")
@@ -203,15 +227,57 @@ class DownloadFrame:
         self.prd_code_entry = tk.Entry(master=self.frame)
         self.start_date_entry = tk.Entry(master=self.frame)
         self.end_date_entry = tk.Entry(master=self.frame)
-        self.extension_entry = tk.OptionMenu(self.frame, drop_options, *extensions)
+        self.extension_entry = tk.OptionMenu(self.frame, self.drop_options, *extensions)
 
         self.download_button = tk.Button(master=self.frame, text="Search and Download", command=self.handle_download)
 
     def handle_download(self):
-        pass
+        dev_code = self.dev_code_entry.get()
+        prd_code = self.prd_code_entry.get()
+        start_date = self.start_date_entry.get()
+        end_date = self.end_date_entry.get()
+        extension = self.drop_options.get()
+        inval_flag = False
+        noval_flag = False
 
-    def create_download_screen(self):
-        pass
+        filters = {'deviceCode': dev_code,
+                   'dataProductCode': prd_code,
+                   'dateFrom': start_date,
+                   'dateTo': end_date,
+                   'extension': extension,
+                   'dpo_qualityControl': 1,
+                   'dpo_resample': 'none',
+                   'dpo_dataGaps': 0}
+
+        if not (dbu.search_devices(dev_code, path) and dbu.search_products(prd_code, path)):
+            inval_flag = True
+        if not (dev_code and prd_code and start_date and end_date and extension):
+            noval_flag = True
+
+        if inval_flag:
+            window_loading = self.create_download_screen(inval_flag, noval_flag)
+        elif noval_flag:
+            window_loading = self.create_download_screen(inval_flag, noval_flag)
+        else:
+            window_loading = self.create_download_screen(inval_flag, noval_flag)
+            window_loading.update_idletasks()
+            results = o2.download_data_product(filters)
+            print(results)
+            window_loading.destroy()
+        return
+
+    def create_download_screen(self, inval_flag, noval_flag):
+        window_loading = tk.Toplevel()
+        window_loading.wm_minsize(width=100, height=50)
+        if inval_flag:
+            loading_lbl = tk.Label(master=window_loading, text="Invalid Device Code or Product Code")
+        elif noval_flag:
+            loading_lbl = tk.Label(master=window_loading, text="Error Missing Values: Please Fill All Input Sections")
+        else:
+            window_loading.wm_attributes('-type', 'splash')
+            loading_lbl = tk.Label(master=window_loading, text="Downloading Results Please Wait...")
+        loading_lbl.pack(pady=25)
+        return window_loading
 
 
 def export_results(results_text_box):
