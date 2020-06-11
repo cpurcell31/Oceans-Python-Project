@@ -27,7 +27,7 @@ class OceanGui:
         self.frame_download.prd_code_entry.grid(row=2, column=1, padx=62, sticky='w')
 
         self.frame_download.extension_lbl.grid(row=3, column=0, padx=5, sticky='w')
-        self.frame_download.extension_entry.grid(row=3, column=1, padx=62, sticky='w')
+        self.frame_download.extension_entry.grid(row=3, column=1, padx=62)
 
         self.frame_download.start_date_lbl.grid(row=4, column=0, padx=5, sticky='w')
         self.frame_download.start_date_entry.grid(row=4, column=1, padx=62, sticky='w')
@@ -35,7 +35,7 @@ class OceanGui:
         self.frame_download.end_date_lbl.grid(row=5, column=0, padx=5, sticky='w')
         self.frame_download.end_date_entry.grid(row=5, column=1, padx=62, sticky='w')
 
-        self.frame_download.download_button.grid(row=6, column=1)
+        self.frame_download.download_button.grid(row=6, column=1, sticky='w', padx=62, pady=5)
 
         self.frame_download.frame.grid(row=1, column=0, padx=5, sticky='w')
         return
@@ -58,7 +58,7 @@ class OceanGui:
         self.frame_search.find_product_check.grid(row=1, column=3, padx=10, sticky='w')
         self.frame_search.date_check.grid(row=2, column=3, padx=10, sticky='w')
 
-        self.frame_search.search_button.grid(row=5, column=1)
+        self.frame_search.search_button.grid(row=5, column=1, pady=5)
         self.frame_search.search_help.grid(row=0, column=3)
 
         self.frame_search.frame.grid(row=0, column=0, padx=5, sticky='w')
@@ -179,8 +179,8 @@ class SearchFrame:
         window_help = tk.Toplevel()
         window_help.title("ONC Data Util Help")
 
-        search_help_lbl = tk.Label(master=window_help, text="ONC Search Instructions")
-        download_help_lbl = tk.Label(master=window_help, text="ONC Download Instructions")
+        search_help_lbl = tk.Label(master=window_help, text="ONC Search Instructions\n")
+        download_help_lbl = tk.Label(master=window_help, text="ONC Download Instructions\n")
 
         search_help_text = tk.Label(master=window_help, text=(
             "The ONC Search Module processes searches for ONC instrument locations, devices, data products, "
@@ -197,6 +197,14 @@ class SearchFrame:
         search_help_text3 = tk.Label(master=window_help, text=("3. Hit the Search button and wait for results."
                                                                "A window containing any potential results will popup "
                                                                "and give the option to export the results\n\n"))
+        download_help_text = tk.Label(master=window_help, text=("The ONC Download Module processes downloads of ONC "
+                                                                "instrument data.\n"))
+        download_help_text1 = tk.Label(master=window_help, text=("Download Instructions:\n\n1. Input data for all "
+                                                                 "entry fields. If you need to find any options use "
+                                                                 "the ONC Search Module.\n"))
+        download_help_text2 = tk.Label(master=window_help, text=("2. Click the Download button and wait for results. "
+                                                                 "Be patient as depending on data set sizes it may "
+                                                                 "take awhile to process requests\n"))
 
         search_help_lbl.pack()
         search_help_text.pack()
@@ -204,6 +212,9 @@ class SearchFrame:
         search_help_text2.pack()
         search_help_text3.pack()
         download_help_lbl.pack()
+        download_help_text.pack()
+        download_help_text1.pack()
+        download_help_text2.pack()
 
 
 class DownloadFrame:
@@ -225,8 +236,21 @@ class DownloadFrame:
 
         self.dev_code_entry = tk.Entry(master=self.frame)
         self.prd_code_entry = tk.Entry(master=self.frame)
+
+        date_string = "YYYY-MM-DDThh:mm:ss.dddZ"
+
         self.start_date_entry = tk.Entry(master=self.frame)
+        self.start_date_entry.insert(0, date_string)
+        self.start_date_entry.bind(sequence='<FocusIn>', func=lambda f: on_focus_date(self.start_date_entry))
+        self.start_date_entry.bind(sequence='<FocusOut>', func=lambda f: on_unfocus_date(self.start_date_entry))
+        self.start_date_entry.config(fg="grey")
+
         self.end_date_entry = tk.Entry(master=self.frame)
+        self.end_date_entry.insert(0, date_string)
+        self.end_date_entry.bind(sequence='<FocusIn>', func=lambda f: on_focus_date(self.end_date_entry))
+        self.end_date_entry.bind(sequence='<FocusOut>', func=lambda f: on_unfocus_date(self.end_date_entry))
+        self.end_date_entry.config(fg="grey")
+
         self.extension_entry = tk.OptionMenu(self.frame, self.drop_options, *extensions)
 
         self.download_button = tk.Button(master=self.frame, text="Search and Download", command=self.handle_download)
@@ -240,6 +264,8 @@ class DownloadFrame:
         inval_flag = False
         noval_flag = False
 
+        date_string = "YYYY-MM-DDThh:mm:ss.dddZ"
+
         filters = {'deviceCode': dev_code,
                    'dataProductCode': prd_code,
                    'dateFrom': start_date,
@@ -251,7 +277,9 @@ class DownloadFrame:
 
         if not (dbu.search_devices(dev_code, path) and dbu.search_products(prd_code, path)):
             inval_flag = True
-        if not (dev_code and prd_code and start_date and end_date and extension):
+        if not (dev_code and prd_code and extension):
+            noval_flag = True
+        if start_date == date_string or end_date == date_string:
             noval_flag = True
 
         if inval_flag:
@@ -289,6 +317,23 @@ def export_results(results_text_box):
             output.close()
     except FileExistsError:
         print("Unable to Create File")
+    return
+
+
+def on_unfocus_date(date_entry):
+    date_string = "YYYY-MM-DDThh:mm:ss.dddZ"
+    if date_entry.get() == "":
+        date_entry.insert(0, date_string)
+        date_entry.config(fg="grey")
+    return
+
+
+def on_focus_date(date_entry):
+    date_string = "YYYY-MM-DDThh:mm:ss.dddZ"
+    if date_entry.get() == date_string:
+        date_entry.delete(0, tk.END)
+        date_entry.insert(0, "")
+        date_entry.config(fg="black")
     return
 
 
