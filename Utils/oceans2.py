@@ -62,7 +62,7 @@ def get_device_data(filters):
     try:
         results = onc.getDirectByDevice(filters)
     except:
-        exit()
+        return None, None
     try:
         location = onc.getLocations(filters)
     except:
@@ -70,7 +70,7 @@ def get_device_data(filters):
         location = {"locationName": ""}
     if len(results) == 0:
         print("Could not find location code with filters: " + filters)
-        exit()
+        return None, None
     graph_data = GraphData(location[0]["locationName"])
     counter = 0
     for parameter in results["sensorData"]:
@@ -90,7 +90,7 @@ def get_device_data(filters):
                 dates.append(dateutil.parser.parse(time))
             datenums = md.date2num(dates)
             graph_data.add_sample_times(datenums)
-    return graph_data
+    return results, graph_data
 
 
 def export_data(name, parameter, dates, values, extension):
@@ -112,7 +112,7 @@ def get_device_codes(filters):
     try:
         results = onc.getDevices(filters)
     except:
-        exit()
+        return None, None
     if len(results) == 0:
         print("Could not find location code with given filters")
         return None, None
@@ -126,7 +126,7 @@ def get_location_codes(filters):
     try:
         results = onc.getLocations(filters)
     except:
-        exit()
+        return None, None
     if len(results) == 0:
         print("Could not find location code with given filters")
         return None, None
@@ -140,7 +140,7 @@ def get_location_code_by_category(filters):
     try:
         results = onc.getLocations(filters)
     except:
-        exit()
+        return None, None
     if len(results) == 0:
         print("Could not find location code with given filters")
         return None, None
@@ -154,7 +154,7 @@ def get_device_categories(filters):
     try:
         results = onc.getDeviceCategories(filters)
     except:
-        exit()
+        return None, None
     if len(results) == 0:
         print("Could not find categories with given filters")
         return None, None
@@ -169,7 +169,7 @@ def get_data_product_codes(filters):
     try:
         results = onc.getDataProducts(filters)
     except:
-        exit()
+        return None, None
     if len(results) == 0:
         print("Could not find location code with given filters")
         return None, None
@@ -183,7 +183,7 @@ def get_date_information(filters):
     try:
         results = onc.getDeployments(filters)
     except:
-        exit()
+        return None, None
     if len(results) == 0:
         print("Could not find date information with given filters")
         return None, None
@@ -200,7 +200,7 @@ def download_data_product(filters):
     try:
         results = onc.orderDataProduct(filters)
     except:
-        exit()
+        return None
     if len(results) == 0:
         print("Could not find location code with given filters")
         return None
