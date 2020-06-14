@@ -13,8 +13,10 @@ class OceanGui:
         self.window = tk.Tk()
         self.frame_search = SearchFrame(self.window)
         self.frame_download = DownloadFrame(self.window)
+        self.frame_plot = PlotFrame(self.window)
         self.__pack_download_widgets__()
         self.__pack_search_widgets__()
+        self.__pack_plot_widgets__()
         self.window.mainloop()
 
     def __pack_download_widgets__(self):
@@ -63,6 +65,17 @@ class OceanGui:
 
         self.frame_search.frame.grid(row=0, column=0, padx=5, sticky='w')
         return
+
+    def __pack_plot_widgets__(self):
+        self.frame_plot.data_plot_lbl.grid(row=0, column=0, padx=5, sticky='w')
+
+        self.frame_plot.file_entry_lbl.grid(row=1, column=0, padx=5, sticky='w')
+        self.frame_plot.file_select_text.grid(row=1, column=1, padx=44, sticky='w')
+        self.frame_plot.file_select_button.grid(row=1, column=1, padx=215, sticky='w')
+
+        self.frame_plot.data_plot_button.grid(row=2, column=1, padx=80, pady=5, sticky='w')
+
+        self.frame_plot.frame.grid(row=2, column=0, padx=5, sticky='w')
 
 
 class SearchFrame:
@@ -306,6 +319,40 @@ class DownloadFrame:
             loading_lbl = tk.Label(master=window_loading, text="Downloading Results Please Wait...")
         loading_lbl.pack(pady=25)
         return window_loading
+
+
+class PlotFrame:
+
+    def __init__(self, window):
+        self.frame = tk.Frame()
+        self.filename = ""
+
+        self.data_plot_lbl = tk.Label(master=self.frame, text="ONC Plot")
+
+        self.file_entry_lbl = tk.Label(master=self.frame, text="Data Source File")
+        self.file_select_text = tk.Text(master=self.frame, height=1, width=20)
+        self.file_select_button = tk.Button(master=self.frame, text="Select File", command=self.open_file_selector)
+
+        self.data_plot_button = tk.Button(master=self.frame, text="Plot Data", command=self.handle_plot)
+
+    def handle_plot(self):
+        pass
+
+    def create_plot_window(self):
+        pass
+
+    def open_file_selector(self):
+        f = filedialog.askopenfilename(defaultextension=".csv", title="Select File", initialdir=o2.cwd)
+        self.filename = ""
+        try:
+            if f:
+                self.filename = f
+                self.file_select_text.delete("1.0", tk.END)
+                self.file_select_text.insert(tk.END, f)
+                self.file_select_text.see(tk.END)
+        except FileNotFoundError:
+            print("Unable to Find File")
+        return
 
 
 def export_results(results_text_box):
