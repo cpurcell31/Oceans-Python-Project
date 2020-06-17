@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 from Utils import oceans2 as o2
 import sqlite3
 from sqlite3 import Error
@@ -14,6 +15,7 @@ def create_database(path):
         if connection:
             create_table(connection)
             populate_table(connection)
+            create_device_tables(connection)
             connection.close()
     return
 
@@ -105,6 +107,39 @@ def populate_table(connection):
     return
 
 
+def create_device_tables(connection):
+    cursor = connection.cursor()
+    cursor.execute("SELECT id FROM devices")
+    devices = cursor.fetchall()
+
+    for device in devices:
+        # ensure table names are valid
+        device_code = "_" + device[0].replace("-", "").replace(".", "")
+        query = "CREATE TABLE IF NOT EXISTS {} (sample_times TEXT PRIMARY KEY);".format(device_code)
+        cursor.execute(query)
+
+    connection.commit()
+    return
+
+
+def update_device_tables(path):
+    connection = connect_database(path)
+    cursor = connection.cursor()
+    cursor.execute("SELECT id, location FROM devices")
+    devices = cursor.fetchall()
+
+    for device in devices:
+        filters = {"deviceCode": device[0],
+                   "locationCode": device[1],
+                   "startDate": "2015-01-01T00:00:00.000Z",
+                   "endDate": datetime.now().isoformat()}
+        device_code = "_" + device[0].replace("-", "").replace(".", "")
+
+    connection.commit()
+    connection.close()
+    return
+
+
 def search_locations(location_code, path):
     connection = connect_database(path)
     cursor = connection.cursor()
@@ -162,7 +197,7 @@ def get_products(path):
 
 def main():
     cwd = os.getcwd()
-    create_database(cwd + "/OncUtil.db")
+    create_database(cwd + "/Resources/OncUtil.db")
 
 
 if __name__ == "__main__":

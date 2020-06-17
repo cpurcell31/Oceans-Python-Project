@@ -4,7 +4,7 @@ import os
 def get_key(key_path):
     if key_path:
         try:
-            key_file = open(key_path + "/OncKey.txt", 'r')
+            key_file = open(key_path + "/Resources/OncKey.txt", 'r')
             key = key_file.readline().rstrip()
             return key
         except FileNotFoundError:
@@ -14,7 +14,7 @@ def get_key(key_path):
     else:
         cwd = os.getcwd()
         try:
-            key_file = open(cwd + "/OncKey.txt", 'r')
+            key_file = open(cwd + "/Resources/OncKey.txt", 'r')
             key = key_file.readline().rstrip()
             return key
         except FileNotFoundError:
