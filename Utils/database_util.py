@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from Utils import oceans2 as o2
 import sqlite3
 from sqlite3 import Error
@@ -129,10 +129,36 @@ def update_device_tables(path):
     devices = cursor.fetchall()
 
     for device in devices:
+        print(device[0])
         filters = {"deviceCode": device[0],
-                   "startDate": "2015-01-01T00:00:00.000Z",
-                   "endDate": datetime.now().isoformat()}
+                   "dateFrom": "2019-01-01T00:00:00.000Z",
+                   "dateTo": datetime.now().strftime('%Y-%m-%dT%H:%M:%S.000Z')}
         device_code = "_" + device[0].replace("-", "").replace(".", "")
+        values, sample_times = o2.get_device_data(filters)
+        if values is not None and sample_times is not None:
+            for key in values.keys():
+                print(key)
+                key_adjusted = key.replace(" ", "_")
+
+                # query table to see if column name exists
+                query = "PRAGMA table_info({})".format(device_code)
+                cursor.execute(query)
+                col_names = cursor.fetchall()
+                col_exists = False
+                for name in col_names:
+                    if name[1] == key_adjusted:
+                        col_exists = True
+
+                if not col_exists:
+                    query = "ALTER TABLE {} ADD {} TEXT".format(device_code, key_adjusted)
+                    cursor.execute(query)
+
+                if len(values[key]) == len(sample_times[key]):
+                    for value, time in zip(values[key], sample_times[key]):
+                        time_value = (time, value)
+                        # DUPLICATE TIMES???
+                        query = "INSERT INTO {} (sample_times, {}) VALUES (?, ?)".format(device_code, key_adjusted)
+                        cursor.execute(query, time_value)
 
     connection.commit()
     connection.close()
@@ -197,6 +223,7 @@ def get_products(path):
 def main():
     cwd = os.getcwd()
     create_database(cwd + "/Resources/OncUtil.db")
+    # update_device_tables(cwd + "/Resources/OncUtil.db")
 
 
 if __name__ == "__main__":

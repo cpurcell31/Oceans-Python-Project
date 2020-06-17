@@ -58,7 +58,7 @@ class GraphData:
         return
 
 
-def get_device_data(filters):
+def get_graph_data(filters):
     try:
         results = onc.getDirectByDevice(filters)
     except:
@@ -91,6 +91,24 @@ def get_device_data(filters):
             datenums = md.date2num(dates)
             graph_data.add_sample_times(datenums)
     return results, graph_data
+
+
+def get_device_data(filters):
+    try:
+        results = onc.getDirectByDevice(filters)
+    except:
+        print("Could not find device data with given filters")
+        return None, None
+    if len(results) == 0:
+        print("Could not find device data with given filters")
+        return None, None
+    trimmed_results = dict()
+    sample_times = dict()
+    if results["sensorData"] is not None:
+        for parameter in results["sensorData"]:
+            trimmed_results[parameter["sensorName"]] = parameter["data"]["values"]
+            sample_times[parameter["sensorName"]] = parameter["data"]["sampleTimes"]
+    return trimmed_results, sample_times
 
 
 def export_data(name, parameter, dates, values, extension):
