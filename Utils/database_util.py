@@ -125,12 +125,11 @@ def create_device_tables(connection):
 def update_device_tables(path):
     connection = connect_database(path)
     cursor = connection.cursor()
-    cursor.execute("SELECT id, location FROM devices")
+    cursor.execute("SELECT id FROM devices")
     devices = cursor.fetchall()
 
     for device in devices:
         filters = {"deviceCode": device[0],
-                   "locationCode": device[1],
                    "startDate": "2015-01-01T00:00:00.000Z",
                    "endDate": datetime.now().isoformat()}
         device_code = "_" + device[0].replace("-", "").replace(".", "")
