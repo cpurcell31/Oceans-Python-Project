@@ -111,6 +111,21 @@ def get_device_data(filters):
     return trimmed_results, sample_times
 
 
+def get_device_properties(filters):
+    try:
+        results = onc.getProperties(filters)
+    except:
+        print("Could not find device properties with given filters")
+        return None, None
+    if not results:
+        print("Could not find device properties with given filters")
+        return None, None
+    properties = dict()
+    for param in results:
+        properties[param["propertyCode"]] = (param["propertyName"], param["description"], param["hasDeviceData"])
+    return results, properties
+
+
 def export_data(name, parameter, dates, values, extension):
     try:
         f = open(os.getcwd() + "/" + name + "-" + parameter + "." + extension, "w+")

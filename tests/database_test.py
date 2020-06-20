@@ -3,15 +3,14 @@ import Utils.database_util as dbu
 from os import path
 
 cwd = os.getcwd()
+db_path = cwd + "/Resources/OncUtil.db"
 
 
 def test_database_exists():
-    db_path = cwd + "/OncUtil.db"
     assert path.exists(db_path)
 
 
 def test_database_tables():
-    db_path = cwd + "/OncUtil.db"
     connection = dbu.connect_database(db_path)
     cursor = connection.cursor()
     counter = 0
@@ -35,7 +34,6 @@ def test_database_tables():
 
 
 def test_database_populated():
-    db_path = cwd + "/OncUtil.db"
     connection = dbu.connect_database(db_path)
     cursor = connection.cursor()
     counter = 0
@@ -59,6 +57,21 @@ def test_database_populated():
 
 
 def test_database_search_locations():
-    db_path = cwd + "/OncUtil.db"
     loc_code = "BISS"
     assert dbu.search_locations(loc_code, db_path)
+
+
+def test_database_search_devices():
+    dev_code = "TDKLAMBDA15C3256AB"
+    assert dbu.search_devices(dev_code, db_path)
+
+
+def test_database_search_products():
+    pro_code = "TSSD"
+    assert dbu.search_products(pro_code, db_path)
+
+
+def test_database_search_properties():
+    dev_code = "TDKLAMBDA15C3256AB"
+    prop_code = "voltage"
+    assert dbu.search_properties(dev_code, prop_code, db_path)

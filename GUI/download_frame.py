@@ -12,7 +12,7 @@ class DownloadFrame:
         self.frame = tk.Frame()
         self.label_download = tk.Label(master=self.frame, text='ONC Download')
 
-        extensions = dbu.get_products(PATH)
+        extensions = dbu.get_extensions(PATH)
         self.drop_options = tk.StringVar()
         self.drop_options.set(extensions[0])
 

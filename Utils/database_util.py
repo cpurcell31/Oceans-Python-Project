@@ -14,13 +14,31 @@ def create_database(path):
     finally:
         if connection:
             create_table(connection)
-            populate_table(connection)
+            populate_tables(connection)
             create_device_tables(connection)
+            populate_device_tables(connection)
             connection.close()
     return
 
 
+def update_database(path):
+    connection = connect_database(path)
+    if connection:
+        populate_tables(connection)
+        create_device_tables(connection)
+        populate_device_tables(connection)
+        connection.close()
+    else:
+        print("Unable to establish connection to database")
+    return
+
+
 def connect_database(path):
+    """
+
+    :param path: Path to database file
+    :return connection:
+    """
     connection = None
     try:
         connection = sqlite3.connect(path)
@@ -71,7 +89,7 @@ def create_table(connection):
     return
 
 
-def populate_table(connection):
+def populate_tables(connection):
     locations = list()
     devices = list()
     categories = list()
@@ -99,10 +117,10 @@ def populate_table(connection):
         if (prods[key][0], prods[key][1], key) not in products:
             products.append((prods[key][0], prods[key][1], key))
 
-    cursor.executemany('INSERT INTO locations VALUES(?,?);', locations)
-    cursor.executemany('INSERT INTO devices VALUES(?,?);', devices)
-    cursor.executemany('INSERT INTO categories VALUES(?, ?, ?);', categories)
-    cursor.executemany('INSERT INTO products VALUES(?, ?, ?);', products)
+    cursor.executemany('INSERT OR REPLACE INTO locations VALUES(?,?);', locations)
+    cursor.executemany('INSERT OR REPLACE INTO devices VALUES(?,?);', devices)
+    cursor.executemany('INSERT OR REPLACE INTO categories VALUES(?, ?, ?);', categories)
+    cursor.executemany('INSERT OR REPLACE INTO products VALUES(?, ?, ?);', products)
     connection.commit()
     return
 
@@ -115,117 +133,240 @@ def create_device_tables(connection):
     for device in devices:
         # ensure table names are valid
         device_code = "_" + device[0].replace("-", "").replace(".", "")
-        query = "CREATE TABLE IF NOT EXISTS {} (sample_times TEXT PRIMARY KEY);".format(device_code)
+        query = "CREATE TABLE IF NOT EXISTS {} (propertyCode TEXT PRIMARY KEY, " \
+                "propertyName TEXT, " \
+                "description TEXT, " \
+                "hasDeviceData INTEGER);".format(device_code)
         cursor.execute(query)
 
     connection.commit()
     return
 
 
-def update_device_tables(path):
-    connection = connect_database(path)
+def populate_device_tables(connection):
     cursor = connection.cursor()
     cursor.execute("SELECT id FROM devices")
     devices = cursor.fetchall()
 
     for device in devices:
-        print(device[0])
-        filters = {"deviceCode": device[0],
-                   "dateFrom": "2019-01-01T00:00:00.000Z",
-                   "dateTo": datetime.now().strftime('%Y-%m-%dT%H:%M:%S.000Z')}
-        device_code = "_" + device[0].replace("-", "").replace(".", "")
-        values, sample_times = o2.get_device_data(filters)
-        if values is not None and sample_times is not None:
-            for key in values.keys():
-                print(key)
-                key_adjusted = key.replace(" ", "_")
+        filters = {"deviceCode": device[0]}
+        device_code = convert_device_code(device[0])
+        results, properties = o2.get_device_properties(filters)
 
-                # query table to see if column name exists
-                query = "PRAGMA table_info({})".format(device_code)
-                cursor.execute(query)
-                col_names = cursor.fetchall()
-                col_exists = False
-                for name in col_names:
-                    if name[1] == key_adjusted:
-                        col_exists = True
+        properties_adjusted = list()
+        if properties is not None:
+            for key in properties.keys():
+                properties_adjusted.append((key, properties[key][0], properties[key][1], properties[key][2]))
 
-                if not col_exists:
-                    query = "ALTER TABLE {} ADD {} TEXT".format(device_code, key_adjusted)
-                    cursor.execute(query)
-
-                if len(values[key]) == len(sample_times[key]):
-                    for value, time in zip(values[key], sample_times[key]):
-                        time_value = (time, value)
-                        # DUPLICATE TIMES???
-                        query = "INSERT INTO {} (sample_times, {}) VALUES (?, ?)".format(device_code, key_adjusted)
-                        cursor.execute(query, time_value)
+            if properties_adjusted:
+                query = "INSERT OR REPLACE INTO {} VALUES(?, ?, ?, ?)".format(device_code)
+                cursor.executemany(query, properties_adjusted)
 
     connection.commit()
-    connection.close()
     return
+    
+
+def convert_device_code(device_code):
+    """
+
+    :rtype: str
+    :param device_code: str, ONC Device Code
+    :return: table_name
+    """
+    table_name = "_" + device_code.replace("-", "").replace(".", "")
+    return table_name
+
+
+def convert_device_parameter(device_parameter):
+    """
+
+    :rtype: str
+    :param device_parameter: str, Device Parameter i.e. Depth
+    :return: column_name
+    """
+    column_name = ("_" + device_parameter.replace(" ", "_").replace("(", "").replace(")", "").replace("-", "_")
+                   .replace(",", "_").replace(".", "_")).replace("+", "_")
+    return column_name
 
 
 def search_locations(location_code, path):
+    """
+
+    :rtype: bool
+    :param location_code: str, ONC Location Code
+    :param path: str, Path to database file
+    :return: bool
+    """
     connection = connect_database(path)
-    cursor = connection.cursor()
-    cursor.execute("SELECT * FROM locations WHERE id=?", (location_code,))
-    results = cursor.fetchall()
-    connection.commit()
-    connection.close()
-    if len(results) == 0:
+    if connection:
+        cursor = connection.cursor()
+
+        cursor.execute("SELECT * FROM locations WHERE id=?", (location_code,))
+        results = cursor.fetchall()
+
+        connection.commit()
+        connection.close()
+        if results:
+            return True
         return False
-    return True
+    return False
 
 
 def search_devices(device_code, path):
+    """
+
+    :param device_code: str, ONC Device Code
+    :param path: str, Path to database file
+    :return: bool
+    """
     connection = connect_database(path)
-    cursor = connection.cursor()
-    cursor.execute("SELECT * FROM devices WHERE id=?", (device_code,))
-    results = cursor.fetchall()
-    connection.commit()
-    connection.close()
-    if len(results) == 0:
+    if connection:
+        cursor = connection.cursor()
+
+        cursor.execute("SELECT * FROM devices WHERE id=?", (device_code,))
+        results = cursor.fetchall()
+
+        connection.commit()
+        connection.close()
+        if results:
+            return True
         return False
-    return True
+    return False
 
 
 def search_products(product_code, path):
+    """
+
+    :rtype: bool
+    :param product_code: str, ONC Product Code
+    :param path: str, Path to database file
+    :return: bool
+    """
     connection = connect_database(path)
-    cursor = connection.cursor()
-    cursor.execute("SELECT * FROM products where id=?", (product_code,))
-    results = cursor.fetchall()
-    connection.commit()
-    connection.close()
-    if len(results) == 0:
+    if connection:
+        cursor = connection.cursor()
+
+        cursor.execute("SELECT * FROM products WHERE id=?", (product_code,))
+        results = cursor.fetchall()
+
+        connection.commit()
+        connection.close()
+        if results:
+            return True
         return False
-    return True
+    return False
 
 
-def get_products(path):
+def search_property_product(property_code, product_code, path):
+    """
+    UNFINISHED
+    :param property_code: str, ONC Property Code
+    :param product_code: str, ONC Product Code
+    :param path: str, Path to database file
+    :return: bool
+    """
     connection = connect_database(path)
-    cursor = connection.cursor()
+    if connection:
+        cursor = connection.cursor()
 
-    cursor.execute("SELECT * FROM products;")
-    results = cursor.fetchall()
+        query = ""
+        cursor.execute(query)
+        results = cursor.fetchall()
 
-    connection.commit()
-    connection.close()
+        connection.commit()
+        connection.close()
+        if results:
+            return True
+        return False
+    return False
 
-    extensions = list()
-    for result in results:
-        if result[1] not in extensions:
-            extensions.append(result[1])
 
-    extensions.sort()
-    return extensions
+def search_properties(device_code, property_code, path):
+    """
+
+    :param device_code: str, ONC Device Code
+    :param property_code: str, ONC Property Code
+    :param path: str, Path to database file
+    :return: bool
+    """
+    connection = connect_database(path)
+    if connection:
+        cursor = connection.cursor()
+
+        dev_code = convert_device_code(device_code)
+
+        query = "SELECT * FROM {} WHERE propertyCode=?".format(dev_code)
+        cursor.execute(query, (property_code,))
+        results = cursor.fetchall()
+
+        connection.commit()
+        connection.close()
+        if results:
+            return True
+        return False
+    return False
+
+
+def get_extensions(path):
+    """
+
+    :rtype: list
+    :param path: str, Path to database file
+    :return: extensions
+    """
+    connection = connect_database(path)
+    if connection:
+        cursor = connection.cursor()
+
+        cursor.execute("SELECT * FROM products;")
+        results = cursor.fetchall()
+
+        connection.commit()
+        connection.close()
+
+        extensions = list()
+        for result in results:
+            if result[1] not in extensions:
+                extensions.append(result[1])
+
+        extensions.sort()
+        return extensions
+    return list()
+
+
+def get_device_properties(device_code, path):
+    """
+
+    :param device_code: ONC Device Code
+    :param path: Path to database file
+    :return: properties
+    """
+    connection = connect_database(path)
+    if connection:
+        cursor = connection.cursor()
+        dev_code = convert_device_code(device_code)
+
+        query = "SELECT * FROM {} (property)".format(dev_code)
+        cursor.execute(query)
+        results = cursor.fetchall()
+
+        connection.commit()
+        connection.close()
+
+        properties = list()
+        for result in results:
+            if result[1] not in properties:
+                properties.append(result[1])
+
+        properties.sort()
+        return properties
+    return list()
 
 
 def main():
     cwd = os.getcwd()
     create_database(cwd + "/Resources/OncUtil.db")
-    # update_device_tables(cwd + "/Resources/OncUtil.db")
 
 
 if __name__ == "__main__":
     main()
-
